@@ -1,24 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dev Blog</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <header>
-        <h1>Dev Blog</h1>
-    </header>
-    <main>
-        <article>
-            <h2>博客标题</h2>
-            <p>这是你的第一篇博文内容。</p>
-        </article>
-    </main>
-    <footer>
-        <p>&copy; 2024 Dev Blog</p>
-    </footer>
-    <script src="scripts.js"></script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>A Web-based Implementation of Weighted Voronoi Stippling</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header>
+            <h2>A Web-based Implementation of Weighted Voronoi Stippling</h2>
+            <h3>— a DH2323 project</h3>
+            <p>Author: Haohao Yu (haohao@kth.se)</p>
+        </header>
+        <main>
+            <div class="content">
+                <article>
+                    <h3>00. Proposal and Literature Research</h3>
+                    <img src="pointillism.jpeg" alt="Pointillism" />
+                    <img src="stippling.png" alt="Stippling" />
+                    <p>
+                        In the beginning, when I found Daniel Shiffman's new
+                        coding challenge about stippling, I thought of
+                        Pointillism, a painting technique pioneered by French
+                        artist Georges Seurat during the Post-Impressionist
+                        period. Therefore, my initial project proposal was to
+                        extend the stippling project into a Pointillism filter
+                        app—just applying the color method Seurat used in his
+                        works. However, after a deeper dive into some papers
+                        about digital Pointillism, I realized that stippling and
+                        Pointillism are totally different painting methods, and
+                        therefore the digital methods to generate them with a
+                        computer are also totally different. The methods
+                        computer scientists use to generate Pointillism-style
+                        images are too complex for me and for this course
+                        project, so I decided to focus only on stippling.
+                    </p>
+                </article>
+                <article>
+                    <h3>
+                        01. Build the Web App Framework and First Try with
+                        Delaunator
+                    </h3>
+                    <img src="delaunay.png" alt="Delaunay Triangulation" />
+                    <p>
+                        Initially, I wanted to create my project as a
+                        single-page web app that allows users to upload images
+                        and get filtered stippling images with a control panel
+                        to adjust some parameters. I quickly made this with
+                        Next.js. For manipulating pixels, I chose p5.js, which
+                        I'm familiar with and is popular in the web development
+                        field. For calculating Delaunay triangles based on a
+                        group of points, I chose Mapbox's Delaunator because it
+                        performs the fastest in comparison.
+                    </p>
+
+                    <p>
+                        The first step was to generate a group of random points
+                        from the input image by setting a brightness threshold
+                        for each pixel. Then, I used the Delaunator library's
+                        function to easily get the Delaunay triangles.
+                    </p>
+
+                    <p>
+                        result was quite good, and it really ran fast as
+                        expected!
+                    </p>
+                </article>
+
+                <article>
+                    <h3>
+                        02. Calculate Voronoi Diagram Based on Delaunay
+                        Triangles
+                    </h3>
+                    <img src="voronoi.png" alt="Voronoi Diagram" />
+                    <p>
+                        Compared with d3-delaunay, which was used by Daniel
+                        Shiffman in his project, Mapbox's Delaunator is a
+                        relatively low-level library without an API to generate
+                        Voronoi diagrams directly. Therefore, I decided to code
+                        the algorithm myself.
+                    </p>
+
+                    <p>
+                        The Vertices of Voronoi polygons are just the
+                        circumcenters of Delaunay triangles. Using the formula
+                        on this website: [Circumcenter of a
+                        Triangle](https://byjus.com/maths/circumcenter-of-a-triangle/),
+                        I completed the calculateVoronoi function.
+                    </p>
+
+                    <p>The result was good as follows.</p>
+                </article>
+
+                <article>
+                    <h3>
+                        03. Optimize Points Distribution with Lloyd's Algorithm
+                    </h3>
+                    <p>
+                        The most important part of the paper
+                        <em>Weighted Voronoi Stippling</em> is about Lloyd's
+                        algorithm. The basic idea is to calculate the centroids
+                        of each Voronoi cell or polygon and move the
+                        corresponding point to its location, then generate a new
+                        Voronoi diagram and repeat this process until a stable
+                        point distribution is achieved, resulting in the final
+                        stippling image.
+                    </p>
+                    <p>
+                        To implement this in code, I got help from
+                        <a href="https://paulbourke.net/geometry/polygonmesh/"
+                            >Paul Bourke's website</a
+                        >
+                        on how to calculate the centroid coordinate of a
+                        polygon.
+                    </p>
+                    <img src="centroid-formula.png" alt="Centroid Formula" />
+                    <p>
+                        To calculate the weights of each pixel based on its
+                        brightness, I referred to
+                        <a
+                            href="https://www.w3.org/WAI/GL/wiki/Relative_luminance"
+                            >W3C's definition of Relative Luminance</a
+                        >: "For the sRGB color space, the relative luminance of
+                        a color is defined as L = 0.2126 * R + 0.7152 * G +
+                        0.0722 * B".
+                    </p>
+                    <p>
+                        With the knowledge above, I finished the updatePoints
+                        function. The final program could run, but it ran very
+                        slowly, which I thought might be related to some
+                        performance or compatibility issues with p5.js. It might
+                        only perform better on its official web editor. So, I
+                        migrated my algorithm to a p5.js web editor sketch. The
+                        final result was relatively satisfactory.
+                    </p>
+                    <img
+                        src="result-low-contrast.png"
+                        alt="Stippling example with low-contrast portrait"
+                    />
+                    <p>
+                        The face part of this portrait is not good, which I
+                        think is because of insufficient grayscale contrast. An
+                        image with stronger grayscale contrast may perform
+                        better.
+                    </p>
+                    <img
+                        src="result-high-contrast.png"
+                        alt="Original image with strong grayscale contrast"
+                    />
+                    <p>Yes it is! Bye! :)</p>
+                </article>
+            </div>
+        </main>
+        <footer>
+            <p>&copy; 2024 Haohao Yu</p>
+        </footer>
+        <script src="scripts.js"></script>
+    </body>
 </html>
